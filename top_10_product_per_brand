@@ -1,0 +1,41 @@
+SELECT
+
+  items.item_id,
+
+  items.item_brand,
+
+  SUM(items.item_revenue) AS sum_sales,
+
+  ROW_NUMBER() OVER(PARTITION BY items.item_brand ORDER BY SUM(items.item_revenue) DESC) AS row_num
+
+FROM
+
+  `bigquery-public-data.ga4_obfuscated_sample_ecommerce.events_*`,
+
+  UNNEST(items) AS items
+
+WHERE
+
+  _TABLE_SUFFIX BETWEEN '20210125'
+
+  AND '20210131'
+
+  AND event_name = 'purchase'
+
+  AND items.item_id NOT IN ('(not set)')
+
+  AND items.item_brand NOT IN ('(not set)',
+
+    '')
+
+GROUP BY
+
+  1,
+
+  2 QUALIFY row_num < 11
+
+ORDER BY
+
+  2,
+
+  3 DESC
